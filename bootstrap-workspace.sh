@@ -6,7 +6,7 @@
 
 set -e
 
-NAME="workspace-bootstrap"
+WORKSPACE_NAME="workspace-bootstrap"
 REPO="https://github.com/amisevsk/devfile-demo-workspace.git"
 
 USAGE="
@@ -51,13 +51,13 @@ function parse_arguments() {
 
 parse_arguments "$@"
 
-if [ -z PROJECT_NAME ]; then
+if [ -z ${PROJECT_NAME} ]; then
   PROJECT_NAME="${REPO##*/}"
   PROJECT_NAME="${PROJECT_NAME%.git}"
   echo "Using '$PROJECT_NAME' as project name"
 fi
 
-cat <<EOF | cat
+cat <<EOF | kubectl apply -f -
 kind: DevWorkspace
 apiVersion: workspace.devfile.io/v1alpha2
 metadata:
@@ -74,5 +74,5 @@ spec:
     components:
       - name: workspace-root
         container:
-          image: docker.io/amisevsk/workspace-root:dev
+          image: quay.io/amisevsk/workspace-bootstrapper:dev
 EOF

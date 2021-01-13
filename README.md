@@ -27,7 +27,7 @@ git fetch origin pull/240/head:plugin-flattening
 git checkout plugin-flattening
 # optional: export IMG=my-img; make docker
 export IMG="quay.io/amisevsk/devworkspace-controller:plugin-flattening"
-make install_cert_manager install
+make install_cert_manager install install_plugin_templates
 popd; popd;
 ./bootstrap-workspace.sh # -r <REPO> -n <WORKSPACE_NAME>
 ```

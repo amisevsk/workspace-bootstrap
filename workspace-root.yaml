@@ -1,0 +1,17 @@
+kind: DevWorkspace
+apiVersion: workspace.devfile.io/v1alpha2
+metadata:
+  name: workspace-bootstrap
+spec:
+  started: true
+  routingClass: 'basic'
+  template:
+    projects:
+      - name: devfile-demo-workspace
+        git:
+          remotes:
+            origin: "https://github.com/amisevsk/devfile-demo-workspace.git"
+    components:
+      - name: workspace-root
+        container:
+          image: docker.io/amisevsk/workspace-root:dev

@@ -4,16 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/amisevsk/workspace-bootstrap/library"
 	"log"
 	"os"
 	"strings"
 	"time"
 
 	devworkspace "github.com/devfile/api/pkg/apis/workspaces/v1alpha2"
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	ctrl "sigs.k8s.io/controller-runtime"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -21,15 +18,6 @@ const (
 	repoDevfileEnvVar    = "DEVFILE"
 	defaultDevfileEnvVar = "DEFAULT_DEVFILE"
 )
-
-var (
-	scheme = runtime.NewScheme()
-)
-
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(devworkspace.AddToScheme(scheme))
-}
 
 func stop(err error) {
 	if err != nil {
@@ -40,11 +28,11 @@ func stop(err error) {
 
 func main() {
 	log.Println("Beginning devfile bootstrap")
-	client, err := getK8sClient()
+	client, err := library.GetK8sClient()
 	if err != nil {
 		stop(err)
 	}
-	dw, err := readDevWorkspace(client)
+	dw, err := library.GetDevWorkspace(client)
 	if err != nil {
 		stop(err)
 	}
@@ -72,28 +60,17 @@ func getActualDevfile() (*devworkspace.DevWorkspace, error) {
 		return nil, fmt.Errorf("could not find devfile and no default is set")
 	}
 	if repoDevfilePath != "" {
-		devfile, err := readDevfile(repoDevfilePath)
+		devfile, err := library.ReadDevfile(repoDevfilePath)
 		if err != nil {
-			if errors.Is(err, errInvalidSchemaVersion) {
+			if errors.Is(err, library.ErrInvalidSchemaVersion) {
 				log.Printf("Devfile found in repository is unsupported; using default DevWorkspace")
-				return readDevfile(defaultDevfilePath)
+				return library.ReadDevfile(defaultDevfilePath)
 			}
 			return nil, fmt.Errorf("failed to read repo devfile: %w", err)
 		}
 		return devfile, nil
 	}
 	log.Printf("Cloned repository does not contain devfile.yaml; using default DevWorkspace")
-	return readDevfile(defaultDevfilePath)
+	return library.ReadDevfile(defaultDevfilePath)
 }
 
-func getK8sClient() (k8sclient.Client, error) {
-	cfg, err := ctrl.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-	k8sClient, err := k8sclient.New(cfg, k8sclient.Options{Scheme: scheme})
-	if err != nil {
-		return nil, err
-	}
-	return k8sClient, nil
-}

@@ -8,11 +8,12 @@ COPY go.sum go.sum
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-COPY ["main.go", "helper.go", "./"]
+COPY ["main.go", "./"]
+COPY ["library", "./library"]
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a \
     -o _output/bin/workspace-bootstrap \
     -ldflags="-w -s" \
-    main.go helper.go
+    main.go
 
 FROM quay.io/libpod/alpine:latest
 WORKDIR /workspace-bootstrapper
